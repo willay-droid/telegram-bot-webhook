@@ -5,7 +5,7 @@ import gspread
 from flask import Flask, request
 from oauth2client.service_account import ServiceAccountCredentials
 from telegram import Bot, Update
-from telegram.ext import Dispatcher, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from telegram.ext import Application, ApplicationBuilder
 
 app = Flask(__name__)
@@ -28,7 +28,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Bot Helpdesk aktif. Gunakan /port CODE atau /portid PORT_ID.")
 
 async def get_port(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if len(context.args) != 1:
+    if not context.args or len(context.args) != 1:
         await update.message.reply_text("Gunakan format: /port CODE")
         return
     code = context.args[0].strip().upper()
@@ -40,7 +40,7 @@ async def get_port(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Data tidak ditemukan.")
 
 async def get_portid(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if len(context.args) != 1:
+    if not context.args or len(context.args) != 1:
         await update.message.reply_text("Gunakan format: /portid PORT_ID")
         return
     pid = context.args[0].strip().upper()
@@ -51,9 +51,40 @@ async def get_portid(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("Data tidak ditemukan.")
 
+async def get_ipbb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args or len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /ipbb IP_BB")
+        return
+    ipbb = context.args[0].strip().upper()
+    records = worksheet.get_all_records()
+    result = next((row for row in records if row.get("IP_BB", "").upper() == ipbb), None)
+    if result:
+        await update.message.reply_text(f"HOSTNAME: {result.get('NAME_NE')}\nMERK: {result.get('MERK')}\nVLAN_BROADBAND: {result.get('VLAN_BROADBAND')}\nVLAN_VOICE: {result.get('VLAN_VOICE')}")
+    else:
+        await update.message.reply_text("Data tidak ditemukan.")
+
+async def get_sto(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args or len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /sto STO")
+        return
+
+    sto_input = context.args[0].strip().upper()
+    records = worksheet.get_all_records()
+    matches = [row for row in records if row.get("STO", "").upper() == sto_input]
+
+    if matches:
+        response = f"📍 *Hasil untuk STO {sto_input}* ({len(matches)} hasil):\n"
+        for i, row in enumerate(matches[:20], 1):  # batasi 20 hasil teratas
+            response += f"{i}. {row.get('NAME_NE', '-')}\n"
+        await update.message.reply_text(response, parse_mode="Markdown")
+    else:
+        await update.message.reply_text(f"Tidak ditemukan NAME_NE untuk STO '{sto_input}'.")
+
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("port", get_port))
 application.add_handler(CommandHandler("portid", get_portid))
+application.add_handler(CommandHandler("ipbb", get_ipbb))
+application.add_handler(CommandHandler("sto", get_sto))
 
 # === FLASK ROUTE UNTUK WEBHOOK ===
 @app.route("/webhook", methods=["POST"])
