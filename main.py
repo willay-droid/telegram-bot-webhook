@@ -16,6 +16,7 @@ creds_dict = json.loads(credentials_json)
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
+
 # DEBUG: Tampilkan semua spreadsheet yang bisa dilihat oleh service account
 print("📄 Spreadsheet yang bisa diakses oleh Service Account:")
 try:
@@ -24,6 +25,7 @@ try:
         print("🔹", sheet.title)
 except Exception as e:
     print("❌ Gagal menampilkan daftar spreadsheet:", e)
+
 worksheet = client.open("ACTIVE_DEVICE_INFO_JATIMSEL_TIM").worksheet("ACTIVE_DEVICE_INFO_JATIMSEL_TIM")
 
 # === TELEGRAM SETUP ===
