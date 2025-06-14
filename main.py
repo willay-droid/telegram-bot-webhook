@@ -24,7 +24,7 @@ try:
         print("🔹", sheet.title)
 except Exception as e:
     print("❌ Gagal menampilkan daftar spreadsheet:", e)
-worksheet = client.open("ACTIVE_DEVICE_INFO_JATIMSEL_TIM").worksheet("ACTIVE_DEVICE_INFO_JATIMSEL_TIM")
+worksheet = client.open("ID_SLOT_PORT").worksheet("ACTIVE_DEVICE_INFO_JATIMSEL_TIM")
 
 # === TELEGRAM SETUP ===
 BOT_TOKEN = os.environ["TOKEN_BOT"]
