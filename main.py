@@ -99,7 +99,7 @@ application.add_handler(CommandHandler("sto", get_sto))
 def webhook():
     update = Update.de_json(request.get_json(force=True), bot)
     application.update_queue.put(update)
-    return "OK"
+    return "ok"
 
 if __name__ == "__main__":
     import os
